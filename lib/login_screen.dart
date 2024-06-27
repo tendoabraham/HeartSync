@@ -15,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  bool isObscured = true;
 
   @override
   Widget build(BuildContext context) {
@@ -39,52 +40,52 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.08,
                     ),
-                    Text(
+                    const Text(
                       'Hello Love',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
-                    SizedBox(
-                      height: 8,
+                    const SizedBox(
+                      height: 6,
                     ),
-                    Text(
-                      'Login to continue',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.white),
+                    const Text(
+                      'Login to your account',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.22,
                     ),
                     TextField(
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Colors.white
                       ),
                       cursorColor: Colors.white,
                       controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'E-mail',
-                        labelStyle: TextStyle(
+                        labelStyle: const TextStyle(
                           color: Colors.white,
                         ),
                         floatingLabelBehavior: FloatingLabelBehavior.auto,
                         border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
+                          borderSide: const BorderSide(color: Colors.white),
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
+                          borderSide: const BorderSide(color: Colors.white),
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                       ),
                     ),
                     const SizedBox(height: 10),
                     TextField(
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Colors.white
                       ),
                       cursorColor: Colors.white,
                       controller: _passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        labelStyle: TextStyle(
+                        labelStyle: const TextStyle(
                           color: Colors.white,
                         ),
                         floatingLabelBehavior: FloatingLabelBehavior.auto,
@@ -96,8 +97,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderSide: BorderSide(color: Colors.white),
                           borderRadius: BorderRadius.circular(10.0),
                         ),
+                        suffixIconColor: Colors.white,
+                        suffixIcon: IconButton(
+                          icon: Icon(isObscured ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () {
+                            setState(() {
+                              isObscured = !isObscured;
+                            });
+                          },
+                        ),
                       ),
-                      obscureText: true,
+                      obscureText: isObscured,
                     ),
                     Align(
                       alignment: Alignment.centerRight,
@@ -107,14 +117,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             MaterialPageRoute(builder: (context) => SignUp()),
                           );
                         },
-                        child: Text('Forgot Password?',
+                        child: const Text('Forgot Password?',
                           style: TextStyle(
                               color: Colors.white
                           ),),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Container(
+                    SizedBox(
                       width: MediaQuery.of(context).size.width,
                       height: 50,
                       child: ElevatedButton(
@@ -133,23 +143,28 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         onPressed: () async {
-                          var result = await _authService.signInWithEmailPassword(
-                            _emailController.text,
-                            _passwordController.text,
-                          );
+                          if (_emailController.text.isEmpty) {
+                            _showCustomSnackBar(context, 'Please enter your E-mail Address');
+                          }else if(_passwordController.text.isEmpty){
+                            _showCustomSnackBar(context, 'Please enter your Password');
+                          }else{
+                            var result = await _authService.signInWithEmailPassword(
+                              _emailController.text,
+                              _passwordController.text,
+                            );
 
-                          if (result['success']) {
-                            var userData = result['userData'];
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      HomeScreen(userData: userData)),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result['error'])),
-                            );
+                            if (result['success']) {
+                              var userData = result['userData'];
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        HomeScreen(userData: userData)),
+                              );
+                            } else {
+                              _showCustomSnackBar(context, result['error']);
+                            }
                           }
+
                         },
                         child: const Text('Login',
                           style: TextStyle(
@@ -158,6 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),),
                       ),
                     ),
+                    const SizedBox(height: 20),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -190,4 +206,25 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  void _showCustomSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          height: 25.0, // Increase the height
+          alignment: Alignment.center, // Center align the content
+          child: Text(
+            message,
+            style: const TextStyle(fontSize: 18.0), // Adjust font size if needed
+          ),
+        ),
+        behavior: SnackBarBehavior.fixed, // Use fixed behavior
+        backgroundColor: Colors.teal[800],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(25.0), topRight: Radius.circular(25.0)),
+        ),
+      ),
+    );
+  }
+
 }
