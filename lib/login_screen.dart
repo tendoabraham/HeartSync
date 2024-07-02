@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:heart_sync/Auth/sign_up.dart';
 import 'Auth/auth_service.dart';
 import 'home_screen.dart';
@@ -16,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool isObscured = true;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +129,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
                       height: 50,
-                      child: ElevatedButton(
+                      child: isLoading?
+                      SpinKitPumpingHeart(color: Colors.red,)
+                      : ElevatedButton(
                         style: ButtonStyle(
                           shape: MaterialStateProperty.all<
                               RoundedRectangleBorder>(
@@ -143,6 +147,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         onPressed: () async {
+                          setState(() {
+                            isLoading = true;
+                          });
+
                           if (_emailController.text.isEmpty) {
                             _showCustomSnackBar(context, 'Please enter your E-mail Address');
                           }else if(_passwordController.text.isEmpty){
@@ -152,7 +160,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               _emailController.text,
                               _passwordController.text,
                             );
-
+                            setState(() {
+                              isLoading = false;
+                            });
                             if (result['success']) {
                               var userData = result['userData'];
                               Navigator.of(context).pushReplacement(

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../home_screen.dart';
 import '../login_screen.dart';
@@ -24,6 +25,7 @@ class _SignUpState extends State<SignUp> {
   final AuthService _authService = AuthService();
   bool isObscured = true;
   bool isObscured2 = true;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +201,9 @@ class _SignUpState extends State<SignUp> {
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     height: 50,
-                    child: ElevatedButton(
+                    child: isLoading?
+                    SpinKitPumpingHeart(color: Colors.red,)
+                        : ElevatedButton(
                       style: ButtonStyle(
                         shape:
                             MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -211,6 +215,9 @@ class _SignUpState extends State<SignUp> {
                         backgroundColor: MaterialStateProperty.all(Colors.red),
                       ),
                       onPressed: () async {
+                        setState(() {
+                          isLoading = true;
+                        });
                         if (_nameController.text.isEmpty) {
                           _showCustomSnackBar(context, 'Please enter your Name');
                         } else if(_phoneController.text.isEmpty){
@@ -236,7 +243,9 @@ class _SignUpState extends State<SignUp> {
                                   _nameController.text,
                                   _phoneController.text,
                                   "image place holder");
-
+                          setState(() {
+                            isLoading = false;
+                          });
                           if (errorMessage == null) {
                             // Sign up successful, navigate to the home screen
                             Navigator.of(context).pushReplacement(
