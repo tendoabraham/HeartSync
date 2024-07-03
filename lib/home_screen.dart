@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'Auth/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -20,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _pairedUserId;
   late FirebaseMessaging _messaging;
   TextEditingController _pairEmailController = TextEditingController();
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -99,56 +103,144 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () async {
-              await _authService.signOut();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-            },
-          )
-        ],
+      // appBar: AppBar(
+      //   title: const Text('Home'),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.exit_to_app),
+      //       onPressed: () async {
+      //         await _authService.signOut();
+      //         Navigator.of(context).pushReplacement(
+      //           MaterialPageRoute(builder: (context) => LoginScreen()),
+      //         );
+      //       },
+      //     )
+      //   ],
+      // ),
+      body: Stack(
+          fit: StackFit.expand,
+          children: [
+      ImageFiltered(
+      imageFilter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+      child: Image.asset(
+        'assets/images/bg4.jpg',
+        fit: BoxFit.cover,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+    ),
+    SafeArea(
+    child: SingleChildScrollView(
+      child:  Padding(
+        padding: const EdgeInsets.only(left: 16.0, right: 32),
         child: Column(
           children: [
+            Row(
+              children: [
+                Spacer(),
+                GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                            padding: EdgeInsets.zero,
+                            child: Column(
+                              children: [
+                                Image.asset(
+                                  'assets/images/bh2.png',
+                                  height: 30,
+                                  width: 30,
+                                ),
+                                const Text("Logout",
+                                  style: TextStyle(
+                                      color: Colors.white
+                                  ),
+                                )
+                              ],
+                            )
+                        ))),
+              ],
+            ),
             Text('Welcome, ${widget.userData['name']}'),
             Text('UserID, ${widget.userData['uid']}'),
             Text('Email: ${widget.userData['email']}'),
             Text('Phone: ${widget.userData['phone']}'),
+            SizedBox(
+              height: 300,
+            ),
             if (_pairedUserName == null) ...[
               TextField(
+                style: const TextStyle(
+                    color: Colors.white
+                ),
                 controller: _pairEmailController,
-                decoration: InputDecoration(labelText: 'Pair with user (email)'),
+                decoration: InputDecoration(labelText: 'Pair with your love (email)',
+                  labelStyle: const TextStyle(
+                    color: Colors.white,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  border: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  var result = await _authService.pairWithUser(
-                    widget.userData['uid'],
-                    _pairEmailController.text,
-                  );
+              const SizedBox(height: 20),
+              SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 50,
+                  child: isLoading?
+                  const SpinKitPumpingHeart(color: Colors.red,)
+                      :
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.all<
+                          RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                          side: BorderSide(
+                              color: Colors.red),
+                        ),
+                      ),
+                      backgroundColor:
+                      MaterialStateProperty.all(
+                          Colors.red
+                      ),
+                    ),
+                    onPressed: () async {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      var result = await _authService.pairWithUser(
+                        widget.userData['uid'],
+                        _pairEmailController.text,
+                      );
+                      setState(() {
+                        isLoading = false;
+                      });
+                      if (result['success']) {
+                        var pairedUserDoc = await FirebaseFirestore.instance.collection('users').doc(result['pairedUserId']).get();
+                        var pairedUserData = pairedUserDoc.data() as Map<String, dynamic>;
 
-                  if (result['success']) {
-                    var pairedUserDoc = await FirebaseFirestore.instance.collection('users').doc(result['pairedUserId']).get();
-                    var pairedUserData = pairedUserDoc.data() as Map<String, dynamic>;
-
-                    setState(() {
-                      _pairedUserId = result['pairedUserId'];
-                      _pairedUserName = pairedUserData['name'];
-                    });
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(result['error'])),
-                    );
-                  }
-                },
-                child: Text('Pair'),
-              ),
+                        setState(() {
+                          _pairedUserId = result['pairedUserId'];
+                          _pairedUserName = pairedUserData['name'];
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(result['error'])),
+                        );
+                      }
+                    },
+                    child: const Text('Pair',
+                        style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white
+                        )),
+                  )),
             ] else ...[
               ElevatedButton(
                 onPressed: () {
@@ -162,6 +254,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    ),
+    )])
     );
   }
+
 }
