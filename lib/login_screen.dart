@@ -2,9 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:heart_sync/Auth/sign_up.dart';
 import 'Auth/auth_service.dart';
+import 'home.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -20,22 +22,38 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   @override
+  void dispose() {
+    // Reset the status bar style to default when the widget is disposed.
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light, // For iOS devices.
+    ));
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Image.asset(
-              'assets/images/heartsync2.jpg',
-              fit: BoxFit.cover,
-            ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, // Make the status bar transparent
+        statusBarIconBrightness: Brightness.light, // For iOS devices
+    ),
+      child: Scaffold(
+    body: Stack(
+    fit: StackFit.expand,
+      children: [
+        ImageFiltered(
+          imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Image.asset(
+            'assets/images/heartsync2.jpg',
+            fit: BoxFit.cover,
           ),
-          SafeArea(
+        ),
+        SafeArea(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28.0),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -44,20 +62,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const Text(
                       'Hello Love',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, fontFamily: "Macondo", color: Colors.white),
                     ),
                     const SizedBox(
                       height: 6,
                     ),
                     const Text(
                       'Login to your account',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(fontWeight: FontWeight.normal, fontFamily: "Macondo", color: Colors.white),
                     ),
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.22,
                     ),
                     TextField(
                       style: const TextStyle(
+                          fontFamily: "Macondo",
                           color: Colors.white
                       ),
                       cursorColor: Colors.white,
@@ -65,6 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'E-mail',
                         labelStyle: const TextStyle(
+                          fontFamily: "Macondo",
                           color: Colors.white,
                         ),
                         floatingLabelBehavior: FloatingLabelBehavior.auto,
@@ -81,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 10),
                     TextField(
                       style: const TextStyle(
+                          fontFamily: "Macondo",
                           color: Colors.white
                       ),
                       cursorColor: Colors.white,
@@ -88,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         labelStyle: const TextStyle(
+                          fontFamily: "Macondo",
                           color: Colors.white,
                         ),
                         floatingLabelBehavior: FloatingLabelBehavior.auto,
@@ -121,6 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         child: const Text('Forgot Password?',
                           style: TextStyle(
+                              fontFamily: "Macondo",
                               color: Colors.white
                           ),),
                       ),
@@ -131,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 50,
                       child: isLoading?
                       SpinKitPumpingHeart(color: Colors.red,)
-                      : ElevatedButton(
+                          : ElevatedButton(
                         style: ButtonStyle(
                           shape: MaterialStateProperty.all<
                               RoundedRectangleBorder>(
@@ -170,6 +193,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                     builder: (context) =>
                                         HomeScreen(userData: userData)),
                               );
+                              // Navigator.of(context).pushReplacement(
+                              //   MaterialPageRoute(
+                              //       builder: (context) =>
+                              //           Home()),
+                              // );
                             } else {
                               _showCustomSnackBar(context, result['error']);
                             }
@@ -179,6 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text('Login',
                           style: TextStyle(
                               fontSize: 18,
+                              fontFamily: "Macondo",
                               color: Colors.white
                           ),),
                       ),
@@ -197,10 +226,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             Text('Don\'t have an account? ',
                               style: TextStyle(
+                                  fontFamily: "Macondo",
                                   color: Colors.white
                               ),),
                             Text('Sign Up',
                               style: TextStyle(
+                                  fontFamily: "Macondo",
                                   color: Colors.red
                               ),),
                           ],
@@ -211,10 +242,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             )
-          ),
-        ],
-      ),
-    );
+        ),
+      ],
+    ),
+    ),);
   }
 
   void _showCustomSnackBar(BuildContext context, String message) {
